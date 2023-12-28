@@ -4,7 +4,10 @@ six
 tabulate
 prompt_toolkit
 SQLAlchemy
-future-fstrings
-netas-xmla-with-dax
 enum
 sqlalchemy
+influxdb-client
+pandas
+requests-ntlm
+sqlparse
+zeep

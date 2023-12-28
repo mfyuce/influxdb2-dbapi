@@ -1,45 +1,43 @@
-# A Python DB API 2.0 for OLAP #
+# A Python DB API 2.0 for InfluxDb2 with SQLAlchemy#
 
-This module allows accessing OLAP via its [XMLA](https://pypi.org/project/netas-xmla-with-dax/) using MDX or DAX.
+This module allows accessing influxdb2 with SQLAlchemy.
 
 ## Usage ##
 
 Using the DB API:
 
 ```python
-from netas_olap_dbapi import connect
+from influxdb2_dbapi import connect
 
-conn = connect(host='localhost', port=80, path='/OLAP/msmdpump.dll', scheme='http')
+conn = connect(host='localhost', port=8086,scheme='http',org=..,token=..)
 curs = conn.cursor()
 curs.execute("""
-    EVALUATE SUMMARIZECOLUMNS(..., FILTER(VALUES(...), ...)
+    from(bucket: "...")
+     ...
 """)
 #or 
 curs.execute("""
     SELECT  * 
     FROM (
         
-    EVALUATE SUMMARIZECOLUMNS(..., FILTER(VALUES(...), ...)
+    
+    from(bucket: "...")
+     ...
 
     )as qry
      LIMIT 10
 """)
 #or
-curs.execute("""
-    SELECT [Dim].[Fld].[(All)] on 0,
-        [Dim2].[Fld2].[(All)] on 1
-   FROM [MODEL]
+curs.execute(""" 
+    from(bucket: "...")
+    ...
 """)
 #or
 curs.execute("""
     SELECT  * 
     FROM (
-        
-    SELECT [Dim].[Fld].[(All)] on 0,
-        [Dim2].[Fld2].[(All)] on 1,
-        [Dim3].[Fld3].[(All)] on 2
-   FROM [MODEL]
-
+        from(bucket: "...")
+        ...
     )as qry
      LIMIT 10
 """)
@@ -54,9 +52,7 @@ from sqlalchemy import *
 from sqlalchemy.engine import create_engine
 from sqlalchemy.schema import *
 
-engine = create_engine('ssas://localhost:80/OLAP/msmdpump.dll')  # uses HTTP by default :(
-# engine = create_engine('ssas+http://localhost:8082/OLAP/msmdpump.dll')
-# engine = create_engine('ssas+https://localhost:8082/OLAP/msmdpump.dll')
+engine = create_engine('influxdb2://localhost:8086')  # uses HTTP by default :( 
 
 places = Table('places', MetaData(bind=engine), autoload=True)
 print(select([func.count('*')], from_obj=places).scalar())
@@ -65,8 +61,8 @@ print(select([func.count('*')], from_obj=places).scalar())
 Using the REPL:
 
 ```bash
-$ netas_olap_db http://localhost:80/OLAP/msmdpump.dll
-> EVALUATE SUMMARIZECOLUMNS(..., FILTER(VALUES(...), ...)
+$ influxdb2_db http://localhost:8086/
+>  from(bucket:...)
   cnt
 -----
 12345

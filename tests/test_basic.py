@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from .context import druiddb
+from .context import influxdb2_dbapi
 
 import unittest
 
@@ -10,7 +10,7 @@ class BasicTestSuite(unittest.TestCase):
     def test_rows_from_chunks_empty(self):
         chunks = []
         expected = []
-        result = list(druiddb.db.rows_from_chunks(chunks))
+        result = list(influxdb2_dbapi.db.rows_from_chunks(chunks))
         self.assertEquals(result, expected)
 
     def test_rows_from_chunks_single_chunk(self):
@@ -20,7 +20,7 @@ class BasicTestSuite(unittest.TestCase):
             {'name': 'bob'},
             {'name': 'charlie'},
         ]
-        result = list(druiddb.db.rows_from_chunks(chunks))
+        result = list(influxdb2_dbapi.db.rows_from_chunks(chunks))
         self.assertEquals(result, expected)
 
     def test_rows_from_chunks_multiple_chunks(self):
@@ -33,7 +33,7 @@ class BasicTestSuite(unittest.TestCase):
             {'name': 'bob'},
             {'name': 'charlie'},
         ]
-        result = list(druiddb.db.rows_from_chunks(chunks))
+        result = list(influxdb2_dbapi.db.rows_from_chunks(chunks))
         self.assertEquals(result, expected)
 
     def test_rows_from_chunks_bracket_in_string(self):
@@ -42,7 +42,7 @@ class BasicTestSuite(unittest.TestCase):
             {'name': 'ali{ce'},
             {'name': 'bob'},
         ]
-        result = list(druiddb.db.rows_from_chunks(chunks))
+        result = list(influxdb2_dbapi.db.rows_from_chunks(chunks))
         self.assertEquals(result, expected)
 
     def test_rows_from_chunks_quote_in_string(self):
@@ -51,7 +51,7 @@ class BasicTestSuite(unittest.TestCase):
             {'name': 'ali"ce'},
             {'name': 'bob'},
         ]
-        result = list(druiddb.db.rows_from_chunks(chunks))
+        result = list(influxdb2_dbapi.db.rows_from_chunks(chunks))
         self.assertEquals(result, expected)
 
 

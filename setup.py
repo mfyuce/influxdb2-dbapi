@@ -11,19 +11,28 @@ from shutil import rmtree
 from setuptools import find_packages, setup, Command
 
 # Package meta-data.
-NAME = 'netas-olap-dbapi'
+NAME = 'Influxdb2-dbapi'
 FOLDER = NAME.replace("-","_")
-DESCRIPTION = 'Python DB-API and SQLAlchemy interface for OLAP.'
-URL = 'https://github.com/mfyuce/netas-olap-dbapi'
-EMAIL = 'mfyuce@netas.com.tr'
+DESCRIPTION = 'Python DB-API and SQLAlchemy interface for influxdb2.'
+URL = 'https://github.com/mfyuce/influxdb2-dbapi'
+EMAIL = 'fatih.yuce@ulakhaberlesme.com.tr'
 AUTHOR = 'Beto Dealmeida + Mehmet F. YUCE'
 
 # What packages are required for this module to be executed?
 REQUIRED = [
+    'Pygments',
     'requests',
     'six',
-    'future-fstrings',
-    'netas-xmla-with-dax'
+    'tabulate',
+    'prompt_toolkit',
+    'SQLAlchemy',
+    'enum',
+    'sqlalchemy',
+    'influxdb-client',
+    'pandas',
+    'requests-ntlm',
+    'sqlparse',
+    'zeep'
 ]
 if sys.version_info < (3, 4):
     REQUIRED.append('enum')
@@ -108,12 +117,12 @@ setup(
 
     entry_points={
         'console_scripts': [
-            'netas_olap_db = netas_olap.console:main',
+            'influxdb2_db = influxdb2.console:main',
         ],
         'sqlalchemy.dialects': [
-            'ssas = netas_olap_dbapi.ssas_sqlalchemy:SSASHTTPDialect',
-            'ssas.http = netas_olap_dbapi.ssas_sqlalchemy:SSASHTTPDialect',
-            'ssas.https = netas_olap_dbapi.ssas_sqlalchemy:SSASHTTPSDialect',
+            'ssas = influxdb2_dbapi.influxdb2_sqlalchemy:Influxdb2HTTPDialect',
+            'ssas.http = influxdb2_dbapi.influxdb2_sqlalchemy:Influxdb2HTTPDialect',
+            'ssas.https = influxdb2_dbapi.influxdb2_sqlalchemy:Influxdb2HTTPSDialect',
         ],
     },
     install_requires=REQUIRED,

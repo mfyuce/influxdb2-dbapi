@@ -13,7 +13,7 @@ from pygments.styles.default import DefaultStyle
 from six.moves.urllib import parse
 from tabulate import tabulate
 
-from netas_olap_dbapi.db import connect
+from influxdb2_dbapi.db import connect
 
 
 keywords = [
@@ -141,12 +141,12 @@ def get_autocomplete(connection):
 
 
 def main():
-    history = FileHistory(os.path.expanduser('~/.netas_olap_dbapi_history'))
+    history = FileHistory(os.path.expanduser('~/.influxdb2_dbapi_history'))
 
     try:
         url = sys.argv[1]
     except IndexError:
-        url = 'http://localhost:80/OLAP/msmdpump.dll'
+        url = 'http://localhost:8086/'
     kwargs = get_connection_kwargs(url)
     connection = connect(**kwargs)
     cursor = connection.cursor()

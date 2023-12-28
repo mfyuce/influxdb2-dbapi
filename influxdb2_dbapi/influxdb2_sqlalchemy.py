@@ -7,8 +7,8 @@ from sqlalchemy.engine import default
 from sqlalchemy.sql import compiler
 from sqlalchemy import types,util
 
-import netas_olap_dbapi as db
-from netas_olap_dbapi import exceptions
+import influxdb2_dbapi as db
+from influxdb2_dbapi import exceptions
 
 
 RESERVED_SCHEMAS = ['INFORMATION_SCHEMA']
@@ -102,15 +102,15 @@ class UniversalSet(object):
         return True
 
 
-class SSASIdentifierPreparer(compiler.IdentifierPreparer):
+class Influxdb2IdentifierPreparer(compiler.IdentifierPreparer):
     reserved_words = UniversalSet()
 
 
-class SSASCompiler(compiler.SQLCompiler):
+class Influxdb2Compiler(compiler.SQLCompiler):
     pass
 
 
-class SSASTypeCompiler(compiler.GenericTypeCompiler):
+class Influxdb2TypeCompiler(compiler.GenericTypeCompiler):
     def visit_REAL(self, type_, **kwargs):
         return "DOUBLE"
 
@@ -155,14 +155,14 @@ class SSASTypeCompiler(compiler.GenericTypeCompiler):
         raise exceptions.NotSupportedError('Type NCBLOB is not supported')
 
 
-class SSASDialect(default.DefaultDialect):
+class Influxdb2Dialect(default.DefaultDialect):
 
-    name = 'sass'
+    name = 'influxdb2'
     scheme = 'http'
     driver = 'rest'
-    preparer = SSASIdentifierPreparer
-    statement_compiler = SSASCompiler
-    type_compiler = SSASTypeCompiler
+    preparer = Influxdb2IdentifierPreparer
+    statement_compiler = Influxdb2Compiler
+    type_compiler = Influxdb2TypeCompiler
     supports_alter = False
     supports_pk_autoincrement = False
     supports_default_values = False
@@ -183,6 +183,8 @@ class SSASDialect(default.DefaultDialect):
             'host': url.host,
             'port': url.port or 80,
             'path': url.database,
+            'token': url.token,
+            'org': url.org,
             'scheme': self.scheme,
             'username': url.username,
             'password': url.password,
@@ -191,9 +193,9 @@ class SSASDialect(default.DefaultDialect):
         return ([], kwargs)
 
     def get_schema_names(self, connection, **kwargs):
-        # Each SSAS datasource appears as a table in the "SSAS" schema. This
-        # is also the default schema, so SSAS datasources can be referenced as
-        # either SSAS.dataSourceName or simply dataSourceName.
+        # Each Influxdb2 datasource appears as a table in the "Influxdb2" schema. This
+        # is also the default schema, so Influxdb2 datasources can be referenced as
+        # either Influxdb2.dataSourceName or simply dataSourceName.
         result = connection.raw_connection().connection.xmla.getDBSchemaCatalogs()
 
         return [
@@ -295,19 +297,19 @@ class SSASDialect(default.DefaultDialect):
     def _dialect_specific_select_one(self):
         return ""
 
-SSASHTTPDialect = SSASDialect
+Influxdb2HTTPDialect = Influxdb2Dialect
 
 
-class SSASHTTPSDialect(SSASDialect):
+class Influxdb2HTTPSDialect(Influxdb2Dialect):
 
     scheme = 'https'
 
 
-def get_is_nullable(SSAS_is_nullable):
+def get_is_nullable(Influxdb2_is_nullable):
     # this should be 'YES' or 'NO'; we default to no
-    return SSAS_is_nullable.lower() == 'yes'
+    return Influxdb2_is_nullable.lower() == 'yes'
 
 
-def get_default(SSAS_column_default):
+def get_default(Influxdb2_column_default):
     # currently unused, returns ''
-    return str(SSAS_column_default) if SSAS_column_default != '' else None
+    return str(Influxdb2_column_default) if Influxdb2_column_default != '' else None

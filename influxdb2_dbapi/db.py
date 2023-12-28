@@ -13,13 +13,15 @@ from six.moves.urllib import parse
 from sqlalchemy import create_engine
 import pandas as pd
 import requests
+from sqlalchemy import text
 
 from .exceptions import Error, NotSupportedError, ProgrammingError
-from olap.xmla.xmla import XMLAProvider
+
 
 from requests.auth import HTTPBasicAuth
 from requests_ntlm import HttpNtlmAuth
 import sqlparse
+from influxdb_client import InfluxDBClient
 
 logger = logging.getLogger(__name__)
 
@@ -30,17 +32,16 @@ class Type(Enum):
     BOOLEAN = 3
 
 
-def connect(host='localhost', port=80, path='/OLAP/msmdpump.dll', scheme='http', username=None, password=None,
-            trusted_connection=False):
+def connect(host='localhost', port=8086, scheme='http',
+            trusted_connection=False, token=None, org=None):
     """
     Constructor for creating a connection to the database.
 
-        >>> conn = connect('localhost', 8082)
-        >>> curs = conn.cursor()
+        >>> conn = InfluxDBClient(url=f"http://{host}:{port}", token=token, org=org)
 
     """
-    return Connection(host, port, path, scheme, username=username, password=password,
-                      trusted_connection=trusted_connection)
+    return Connection(host, port, scheme,
+                      trusted_connection=trusted_connection, token=token, org=org)
 
 
 def check_closed(f):
@@ -125,13 +126,13 @@ def get_description_from_rowset(res):
 
     """
     ret = []
-    for i in range(len(res)):
+    for i in res.keys():
         c = res[i]
 
-        t = get_type_from_schema(c.get('type'))
+        t = Type.STRING #get_type_from_schema(c.get('type'))
         ret.append(
             (
-                c.get("name"),  # name
+                c,  # name
                 t,  # type_code
                 None,  # [display_size]
                 None,  # [internal_size]
@@ -238,38 +239,31 @@ def get_type_from_schema(t):
 
 
 class Connection(object):
-    """Connection to a OLAP database."""
+    """Connection to a influxdb2 database."""
 
     def __init__(
             self,
             host='localhost',
-            port=80,
-            path='/OLAP/msmdpump.dll',
+            port=8086,
             scheme='http',
-            username=None,
-            password=None,
-            trusted_connection=False
+            trusted_connection=False,
+            token=None,
+            org=None
     ):
         netloc = f'{host}:{port}'
         self.url = parse.urlunparse(
-            (scheme, netloc, path, None, None, None))
+            (scheme, netloc, "", None, None, None))
         self.closed = False
         self.cursors = []
+        self.org = org
         auth = None
-        if trusted_connection and username:
-            auth = HttpNtlmAuth(username, password)
-        elif username:
-            auth = HTTPBasicAuth(username, password)
+        # if trusted_connection and username:
+        #     auth = HttpNtlmAuth(username, password)
+        # elif username:
+        #     auth = HTTPBasicAuth(username, password)
 
-        provider = XMLAProvider()
-        # c = provider.connect(location='http://localhost/OLAP/msmdpump.dll',sslverify=False,  auth = HttpNtlmAuth('EBILET\mfyuce', 'FdfuSadD7cV'))
-        self.xmla = provider.connect(location=self.url, sslverify=False, auth=auth)
-        # c = provider.connect(location='http://10.134.2.182/OLAP/msmdpump.dll',sslverify=False, auth = HTTPBasicAuth('DwhLinkedUser', 'Besiktas!1903'))
-        # a = c.BeginSession()
-        # print (c.getDatasources())
-        # print (c.getMDSchemaCubes())
-        # source = c.getOLAPSource()
-        # print (source.getCatalog("TESTforNetAI"))
+        self.influxDb2 = InfluxDBClient(url=self.url, token=token, org=org)
+
 
     @check_closed
     def close(self):
@@ -359,23 +353,23 @@ class Cursor(object):
         if parsed and hasattr(parsed, "tokens"):
             for token in parsed.tokens:
                 value = token.value
-                if value.replace("(", "").replace(" ", "").lower().startswith("select"):
-                    if self.is_supported_query(token):
-                        # found supported query
-                        # return it and modified
-                        return (value.strip(' ()') if value.strip(' ').startswith("(") else value,
-                                original_parsed.value.replace(value, "(SELECT * FROM Model)"))
-                    else:
-                        ret = self.get_supported_query(token, original_parsed)
-                        if ret:
-                            return ret
+                if "from%%%bucket:" in value.replace("(", "%%%").replace(" ", "").lower():
+                    # if self.is_supported_query(token):
+                    # found supported query
+                    # return it and modified
+                    return (value.replace(')as qry',"").strip(' ()\'\"') if value.strip(' ').startswith("(") else value,
+                            original_parsed.value.replace(value, "(SELECT * FROM Model)"))
                 else:
                     ret = self.get_supported_query(token, original_parsed)
                     if ret:
                         return ret
+                # else:
+                #     ret = self.get_supported_query(token, original_parsed)
+                #     if ret:
+                #         return ret
         return None
 
-    def execute_one_olap(self, operation, schema):
+    def execute_one_influxdb2(self, operation, schema):
         # `_stream_query` returns a generator that produces the rows; we need
         # to consume the first row so that `description` is properly set, so
         # let's consume it and insert it back.
@@ -393,7 +387,7 @@ class Cursor(object):
         # let's consume it and insert it back.
         from_sqlite = self._stream_query_sqlite(operation, schema)
         if not from_sqlite:
-            results = self.execute_one_olap(operation, schema)
+            results = self.execute_one_influxdb2(operation, schema)
         else:
             results = self.from_sqlite_engine()
 
@@ -404,7 +398,7 @@ class Cursor(object):
 
     def from_sqlite_engine(self):
         with self.sqliteengine.connect() as connection:
-            results = connection.execute(self.query_to_execute_on_db)
+            results = connection.execute(text(self.query_to_execute_on_db))
             self.description = results.cursor.description
             for row in results:
                 yield row
@@ -476,7 +470,21 @@ class Cursor(object):
         """
         self.description = None
         if query:
-            res = self.connection.xmla.Execute(query, Catalog=schema)
+            query_api = self.connection.influxDb2.query_api()
+            res = query_api.query_stream( query=query, org=self.connection.org )
+            for record in res:
+                Row = None
+                row = record.values
+                # update description
+                if self.description is None:
+                    self.description = get_description_from_rowset(record.values)
+
+                # return row in namedtuple
+                if Row is None:
+                    keys = row.keys()
+                    Row = namedtuple('Row', keys, rename=True)
+
+                yield Row(*row)
             if hasattr(res, "getSlice"):
                 xmla_slice = res.getSlice()
 
@@ -522,7 +530,7 @@ class Cursor(object):
                         yield Row(*values)
             else:
                 Row = None
-                for irow in range(len(res.rows)):
+                for irow in range(len([x for x in res])):
                     row = res.rows[irow]
                     # update description
                     if self.description is None:
@@ -556,12 +564,12 @@ class Cursor(object):
             if not self.is_supported_query(parsed):
                 queries = self.get_supported_query(parsed)
                 if queries:
-                    self.query_to_execute_on_olap = queries[0]
+                    self.query_to_execute_on_influxdb2 = queries[0]
                     self.query_to_execute_on_db = queries[1]
-                    results = self.execute_one_olap(self.query_to_execute_on_olap, schema)
+                    results = self.execute_one_influxdb2(self.query_to_execute_on_influxdb2, schema)
                     self.sqliteengine = create_engine('sqlite:///:memory:', echo=True)
                     with self.sqliteengine.connect() as connection:
-                        connection.execute("drop table if exists model")
+                        connection.execute(text("drop table if exists model"))
                     df = pd.DataFrame(results)
                     df.to_sql('Model', self.sqliteengine.engine)
                     return True

@@ -11,17 +11,19 @@ from shutil import rmtree
 from setuptools import find_packages, setup, Command
 
 # Package meta-data.
-NAME = 'druiddb'
-DESCRIPTION = 'Python DB-API and SQLAlchemy interface for Druid.'
-URL = 'https://github.com/betodealmeida/druid-dbapi'
-EMAIL = 'beto@dealmeida.net'
-AUTHOR = 'Beto Dealmeida'
+NAME = 'netas-olap-dbapi'
+FOLDER = NAME.replace("-","_")
+DESCRIPTION = 'Python DB-API and SQLAlchemy interface for OLAP.'
+URL = 'https://github.com/mfyuce/netas-olap-dbapi'
+EMAIL = 'mfyuce@netas.com.tr'
+AUTHOR = 'Beto Dealmeida + Mehmet F. YUCE'
 
 # What packages are required for this module to be executed?
 REQUIRED = [
     'requests',
     'six',
     'future-fstrings',
+    'netas-xmla-with-dax'
 ]
 if sys.version_info < (3, 4):
     REQUIRED.append('enum')
@@ -53,7 +55,7 @@ long_description = ''
 
 # Load the package's __version__.py module as a dictionary.
 about = {}
-with open(os.path.join(here, NAME, '__version__.py')) as f:
+with open(os.path.join(here, FOLDER, '__version__.py')) as f:
     exec(f.read(), about)
 
 
@@ -106,12 +108,12 @@ setup(
 
     entry_points={
         'console_scripts': [
-            'druiddb = druiddb.console:main',
+            'netas_olap_db = netas_olap.console:main',
         ],
         'sqlalchemy.dialects': [
-            'druid = druiddb.druid_sqlalchemy:DruidHTTPDialect',
-            'druid.http = druiddb.druid_sqlalchemy:DruidHTTPDialect',
-            'druid.https = druiddb.druid_sqlalchemy:DruidHTTPSDialect',
+            'ssas = netas_olap_dbapi.ssas_sqlalchemy:SSASHTTPDialect',
+            'ssas.http = netas_olap_dbapi.ssas_sqlalchemy:SSASHTTPDialect',
+            'ssas.https = netas_olap_dbapi.ssas_sqlalchemy:SSASHTTPSDialect',
         ],
     },
     install_requires=REQUIRED,

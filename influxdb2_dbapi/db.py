@@ -33,15 +33,15 @@ class Type(Enum):
 
 
 def connect(host='localhost', port=8086, scheme='http',
-            trusted_connection=False, token=None, org=None):
+            trusted_connection=False, token=None,
+            path='',username='',password=',', org=None):
     """
     Constructor for creating a connection to the database.
 
         >>> conn = InfluxDBClient(url=f"http://{host}:{port}", token=token, org=org)
 
     """
-    return Connection(host, port, scheme,
-                      trusted_connection=trusted_connection, token=token, org=org)
+    return Connection(host, port, scheme, path='', trusted_connection=trusted_connection, token=token, org=org)
 
 
 def check_closed(f):
@@ -246,6 +246,7 @@ class Connection(object):
             host='localhost',
             port=8086,
             scheme='http',
+            path='',
             trusted_connection=False,
             token=None,
             org=None

@@ -3,9 +3,7 @@ requests
 six
 tabulate
 prompt_toolkit
-SQLAlchemy
-enum
-sqlalchemy
+sqlalchemy==1.4.36
 influxdb-client
 pandas
 requests-ntlm

@@ -67,3 +67,10 @@ $ influxdb2_db http://localhost:8086/
 -----
 12345
 ```
+
+
+# Local install
+
+```bash
+python -m pip install -e  .
+```

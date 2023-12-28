@@ -183,8 +183,8 @@ class Influxdb2Dialect(default.DefaultDialect):
             'host': url.host,
             'port': url.port or 80,
             'path': url.database,
-            'token': url.token,
-            'org': url.org,
+            'token': url.query['token'],
+            'org': url.query['org'],
             'scheme': self.scheme,
             'username': url.username,
             'password': url.password,
@@ -204,13 +204,15 @@ class Influxdb2Dialect(default.DefaultDialect):
         ]
 
     def has_table(self, connection, table_name, schema=None):
-        if schema:
-            result = connection.raw_connection().connection.xmla.getMDSchemaDimensions(properties={"Catalog":schema})
-        else:
-            result = connection.raw_connection().connection.xmla.getMDSchemaDimensions()
-        return len([
-            row.DIMENSION_NAME for row in result if row.DIMENSION_NAME == table_name
-        ])>0
+        """TODO"""
+        return True
+        # if schema:
+        #     result = connection.raw_connection().connection.xmla.getMDSchemaDimensions(properties={"Catalog":schema})
+        # else:
+        #     result = connection.raw_connection().connection.xmla.getMDSchemaDimensions()
+        # return len([
+        #     row.DIMENSION_NAME for row in result if row.DIMENSION_NAME == table_name
+        # ])>0
 
 
     def get_table_names(self, connection, schema=None, **kwargs):
@@ -227,23 +229,23 @@ class Influxdb2Dialect(default.DefaultDialect):
         return {}
 
     def get_columns(self, connection, table_name, schema=None, **kwargs):
-
-        if schema:
-            result = connection.raw_connection().connection.xmla.getMDSchemaLevels(properties={f"Catalog":f"{schema}"})
-        else:
-            result = connection.raw_connection().connection.xmla.getMDSchemaLevels(properties={f"Catalog":f"{schema}"})
-        if table_name:
-            result =  [row for row in result if row.get("DIMENSION_UNIQUE_NAME").strip("[]") == table_name]
-
-        return [
-            {
-                'name': row.get("LEVEL_UNIQUE_NAME"),
-                'type': type_map[row.get("LEVEL_DBTYPE")],
-                'nullable': False,
-                'default': None #get_default(row.COLUMN_DEFAULT),
-            }
-            for row in result
-        ]
+        return {}
+        # if schema:
+        #     result = connection.raw_connection().connection.xmla.getMDSchemaLevels(properties={f"Catalog":f"{schema}"})
+        # else:
+        #     result = connection.raw_connection().connection.xmla.getMDSchemaLevels(properties={f"Catalog":f"{schema}"})
+        # if table_name:
+        #     result =  [row for row in result if row.get("DIMENSION_UNIQUE_NAME").strip("[]") == table_name]
+        #
+        # return [
+        #     {
+        #         'name': row.get("LEVEL_UNIQUE_NAME"),
+        #         'type': type_map[row.get("LEVEL_DBTYPE")],
+        #         'nullable': False,
+        #         'default': None #get_default(row.COLUMN_DEFAULT),
+        #     }
+        #     for row in result
+        # ]
 
     def get_pk_constraint(self, connection, table_name, schema=None, **kwargs):
         return {'constrained_columns': [], 'name': None}

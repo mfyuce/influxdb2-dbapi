@@ -11,7 +11,7 @@ from shutil import rmtree
 from setuptools import find_packages, setup, Command
 
 # Package meta-data.
-NAME = 'Influxdb2-dbapi'
+NAME = 'influxdb2-dbapi'
 FOLDER = NAME.replace("-","_")
 DESCRIPTION = 'Python DB-API and SQLAlchemy interface for influxdb2.'
 URL = 'https://github.com/mfyuce/influxdb2-dbapi'
@@ -26,7 +26,6 @@ REQUIRED = [
     'tabulate',
     'prompt_toolkit',
     'SQLAlchemy',
-    'enum',
     'sqlalchemy',
     'influxdb-client',
     'pandas',
@@ -120,9 +119,9 @@ setup(
             'influxdb2_db = influxdb2.console:main',
         ],
         'sqlalchemy.dialects': [
-            'ssas = influxdb2_dbapi.influxdb2_sqlalchemy:Influxdb2HTTPDialect',
-            'ssas.http = influxdb2_dbapi.influxdb2_sqlalchemy:Influxdb2HTTPDialect',
-            'ssas.https = influxdb2_dbapi.influxdb2_sqlalchemy:Influxdb2HTTPSDialect',
+            'influxdb2 = influxdb2_dbapi.influxdb2_sqlalchemy:Influxdb2HTTPDialect',
+            'influxdb2.http = influxdb2_dbapi.influxdb2_sqlalchemy:Influxdb2HTTPDialect',
+            'influxdb2.https = influxdb2_dbapi.influxdb2_sqlalchemy:Influxdb2HTTPSDialect',
         ],
     },
     install_requires=REQUIRED,

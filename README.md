@@ -1,4 +1,4 @@
-# A Python DB API 2.0 for InfluxDb2 with SQLAlchemy#
+# A Python DB API 2.0 for InfluxDb2 with SQLAlchemy (Draft)
 
 This module allows accessing influxdb2 with SQLAlchemy.
 

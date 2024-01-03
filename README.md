@@ -74,3 +74,12 @@ $ influxdb2_db http://localhost:8086/
 ```bash
 python -m pip install -e  .
 ```
+
+# To PyPi
+
+```bash
+sudo apt install twine
+python setup.py sdist
+twine upload dist/*
+
+```

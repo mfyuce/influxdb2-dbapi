@@ -127,7 +127,7 @@ def get_description_from_rowset(res):
     """
     ret = []
     for i in res.keys():
-        c = res[i]
+        c = i
 
         t = Type.STRING #get_type_from_schema(c.get('type'))
         ret.append(
@@ -475,15 +475,15 @@ class Cursor(object):
             res = query_api.query_stream( query=query, org=self.connection.org )
             for record in res:
                 Row = None
-                row = record.values
+                row = record.row
                 # update description
                 if self.description is None:
                     self.description = get_description_from_rowset(record.values)
 
                 # return row in namedtuple
                 if Row is None:
-                    keys = row.keys()
-                    Row = namedtuple('Row', keys, rename=True)
+                    values =record.values
+                    Row = namedtuple('Row', values, rename=True)
 
                 yield Row(*row)
             if hasattr(res, "getSlice"):

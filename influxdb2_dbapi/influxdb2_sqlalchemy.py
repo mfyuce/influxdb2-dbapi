@@ -196,32 +196,33 @@ class Influxdb2Dialect(default.DefaultDialect):
         # Each Influxdb2 datasource appears as a table in the "Influxdb2" schema. This
         # is also the default schema, so Influxdb2 datasources can be referenced as
         # either Influxdb2.dataSourceName or simply dataSourceName.
-        result = connection.raw_connection().connection.xmla.getDBSchemaCatalogs()
-
-        return [
-            row.CATALOG_NAME for row in result
-            if row.CATALOG_NAME not in RESERVED_SCHEMAS
-        ]
+        # result = connection.raw_connection().connection.influxDb2.getDBSchemaCatalogs()
+        #
+        # return [
+        #     row.CATALOG_NAME for row in result
+        #     if row.CATALOG_NAME not in RESERVED_SCHEMAS
+        # ]
+        return []
 
     def has_table(self, connection, table_name, schema=None):
         """TODO"""
         return True
         # if schema:
-        #     result = connection.raw_connection().connection.xmla.getMDSchemaDimensions(properties={"Catalog":schema})
+        #     result = connection.raw_connection().connection.influxDb2.getMDSchemaDimensions(properties={"Catalog":schema})
         # else:
-        #     result = connection.raw_connection().connection.xmla.getMDSchemaDimensions()
+        #     result = connection.raw_connection().connection.influxDb2.getMDSchemaDimensions()
         # return len([
         #     row.DIMENSION_NAME for row in result if row.DIMENSION_NAME == table_name
         # ])>0
 
 
     def get_table_names(self, connection, schema=None, **kwargs):
-        if schema:
-            result = connection.raw_connection().connection.xmla.getMDSchemaDimensions(properties={"Catalog":schema})
-        else:
-            result = connection.raw_connection().connection.xmla.getMDSchemaDimensions()
-        return [  row.DIMENSION_NAME for row in result   ]
-
+        # if schema:
+        #     result = connection.raw_connection().connection.influxDb2.getMDSchemaDimensions(properties={"Catalog":schema})
+        # else:
+        #     result = connection.raw_connection().connection.influxDb2.getMDSchemaDimensions()
+        # return [  row.DIMENSION_NAME for row in result   ]
+        return []
     def get_view_names(self, connection, schema=None, **kwargs):
         return []
 
@@ -231,9 +232,9 @@ class Influxdb2Dialect(default.DefaultDialect):
     def get_columns(self, connection, table_name, schema=None, **kwargs):
         return {}
         # if schema:
-        #     result = connection.raw_connection().connection.xmla.getMDSchemaLevels(properties={f"Catalog":f"{schema}"})
+        #     result = connection.raw_connection().connection.influxDb2.getMDSchemaLevels(properties={f"Catalog":f"{schema}"})
         # else:
-        #     result = connection.raw_connection().connection.xmla.getMDSchemaLevels(properties={f"Catalog":f"{schema}"})
+        #     result = connection.raw_connection().connection.influxDb2.getMDSchemaLevels(properties={f"Catalog":f"{schema}"})
         # if table_name:
         #     result =  [row for row in result if row.get("DIMENSION_UNIQUE_NAME").strip("[]") == table_name]
         #

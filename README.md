@@ -76,7 +76,7 @@ python -m pip install -e  .
 ```
 
 # To PyPi
-
+https://www.turing.com/kb/how-to-create-pypi-packages#how-to-create-and-upload-a-package-to-pypi
 ```bash
 sudo apt install twine
 python setup.py sdist

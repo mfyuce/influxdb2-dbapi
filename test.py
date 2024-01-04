@@ -48,5 +48,6 @@ curs.execute("""
      LIMIT 10
 """)
 for row in curs:
-    print(row._fields)
-    print(row.values)
+    print(row)
+    # print(row._fields)
+    # print(row.values)

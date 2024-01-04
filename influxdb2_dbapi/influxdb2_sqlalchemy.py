@@ -9,7 +9,7 @@ from sqlalchemy import types,util
 
 import influxdb2_dbapi as db
 from influxdb2_dbapi import exceptions
-
+from influxdb_client import OrganizationsService
 
 RESERVED_SCHEMAS = ['INFORMATION_SCHEMA']
 """
@@ -202,7 +202,23 @@ class Influxdb2Dialect(default.DefaultDialect):
         #     row.CATALOG_NAME for row in result
         #     if row.CATALOG_NAME not in RESERVED_SCHEMAS
         # ]
-        return []
+        # organizations_service = OrganizationsService(api_client=connection.connection.influxDb2.api_client)
+        # organizations = organizations_service.get_orgs()
+        # for organization in organizations.orgs:
+        #     print(f'name: {organization.name}, id: {organization.id}')
+        # return organizations.orgs
+        #
+        # return [
+        #     organization.name for organization in organizations.orgs
+        #     if organization.name not in RESERVED_SCHEMAS
+        # ]
+
+        curs = connection.connection.cursor()
+        curs.execute(f""" 
+                    import "influxdata/influxdb/schema"
+                    buckets() 
+                """)
+        return [row.name  for row in curs ]
 
     def has_table(self, connection, table_name, schema=None):
         """TODO"""
@@ -222,7 +238,12 @@ class Influxdb2Dialect(default.DefaultDialect):
         # else:
         #     result = connection.raw_connection().connection.influxDb2.getMDSchemaDimensions()
         # return [  row.DIMENSION_NAME for row in result   ]
-        return []
+        curs = connection.connection.cursor()
+        curs.execute(f""" 
+                            import "influxdata/influxdb/schema"
+                            schema.measurements(bucket: "collectd") 
+                        """)
+        return [row._2  for row in curs ]
     def get_view_names(self, connection, schema=None, **kwargs):
         return []
 
@@ -230,6 +251,29 @@ class Influxdb2Dialect(default.DefaultDialect):
         return {}
 
     def get_columns(self, connection, table_name, schema=None, **kwargs):
+        curs = connection.connection.cursor()
+        curs.execute(f"""
+            SELECT  * 
+            FROM (
+
+             from(bucket: "{schema}")
+              |> range(start: -1m, stop: 1m)
+              |> filter(fn: (r) => r["_measurement"] == "{table_name}")
+              |> limit(n: 1)
+
+            )as qry
+             LIMIT 10
+        """)
+        for row in curs:
+            return [
+                {
+                    'name': field,
+                    'type': types.String,
+                    'nullable': True,
+                    'default': None  # get_default(row.COLUMN_DEFAULT),
+                }
+                for field in row._fields
+            ]
         return {}
         # if schema:
         #     result = connection.raw_connection().connection.influxDb2.getMDSchemaLevels(properties={f"Catalog":f"{schema}"})

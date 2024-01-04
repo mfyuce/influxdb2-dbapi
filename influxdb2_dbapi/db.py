@@ -23,6 +23,8 @@ from requests_ntlm import HttpNtlmAuth
 import sqlparse
 from influxdb_client import InfluxDBClient
 
+from zeep import ns
+
 logger = logging.getLogger(__name__)
 
 
@@ -108,8 +110,6 @@ def get_description_from_row(row, res):
             )
     return ret
 
-
-from zeep import ns
 
 nsmap = {
     "soap": ns.SOAP_11,
@@ -263,7 +263,7 @@ class Connection(object):
         # elif username:
         #     auth = HTTPBasicAuth(username, password)
 
-        self.influxDb2 = InfluxDBClient(url=self.url, token=token, org=org)
+        self.influxDb2 = InfluxDBClient(url=self.url, token=token, org=org, )
 
 
     @check_closed

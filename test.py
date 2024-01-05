@@ -34,20 +34,45 @@ curs = conn.cursor()
 #       |> yield(name: "mean")
 # """)
 # or
+
+
 curs.execute("""
-    SELECT  * 
-    FROM (
-
-     from(bucket: "collectd")
-      |> range(start: -1m, stop: 1m)
-      |> filter(fn: (r) => r["_measurement"] == "cpu")
-      |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)
-      |> yield(name: "mean")
-
-    )as qry
-     LIMIT 10
+    SELECT *
+FROM (
+      from(bucket: "collectd") 
+        |> range(start: -1m, stop: 1m) 
+        |> filter(fn: (r) => r["_measurement"] == "cpu") 
+        |> aggregateWindow(every: 1m, fn: mean, createEmpty: false) 
+        |> group()
+        
+        ) AS "virtual_table"
+ 
+LIMIT 1000
 """)
 for row in curs:
     print(row)
     # print(row._fields)
     # print(row.values)
+
+
+#
+# curs.execute("""
+#     SELECT  *
+#     FROM (
+#
+#      from(bucket: "collectd")
+#       |> range(start: -1m, stop: 1m)
+#       |> filter(fn: (r) => r["_measurement"] == "cpu")
+#       |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)
+#       |> yield(name: "mean")
+#
+#     )as qry
+#      LIMIT 10
+# """)
+# for row in curs:
+#     print(row)
+#     # print(row._fields)
+#     # print(row.values)
+#
+#
+#

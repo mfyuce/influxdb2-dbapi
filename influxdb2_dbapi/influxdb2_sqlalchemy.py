@@ -243,7 +243,7 @@ class Influxdb2Dialect(default.DefaultDialect):
                             import "influxdata/influxdb/schema"
                             schema.measurements(bucket: "collectd") 
                         """)
-        return [row._2  for row in curs ]
+        return [row.value  for row in curs ]
     def get_view_names(self, connection, schema=None, **kwargs):
         return []
 

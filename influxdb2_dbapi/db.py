@@ -132,7 +132,7 @@ def get_description_from_rowset(res):
         t = Type.STRING #get_type_from_schema(c.get('type'))
         ret.append(
             (
-                c,  # name
+                c.strip("_"), # if not c.startswith("_") else "col_" + c,  # name
                 t,  # type_code
                 None,  # [display_size]
                 None,  # [internal_size]
@@ -358,7 +358,7 @@ class Cursor(object):
                     # if self.is_supported_query(token):
                     # found supported query
                     # return it and modified
-                    return (value.replace(')as qry',"").strip(' ()\'\"') if value.strip(' ').startswith("(") else value,
+                    return (value.replace(')as qry',"").replace(') AS "virtual_table"',"").strip(' ()\'\"') if value.strip(' ').startswith("(") else value,
                             original_parsed.value.replace(value, "(SELECT * FROM Model)"))
                 else:
                     ret = self.get_supported_query(token, original_parsed)
@@ -482,7 +482,7 @@ class Cursor(object):
 
                 # return row in namedtuple
                 if Row is None:
-                    values =record.values
+                    values =dict((key.strip("_"), value) for (key, value) in record.values.items())
                     Row = namedtuple('Row', values, rename=True)
 
                 yield Row(*row)
